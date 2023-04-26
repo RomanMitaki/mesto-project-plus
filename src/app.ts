@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import express from 'express';
 import mongoose from 'mongoose';
-import userController from './controllers/userController';
+import userRouter from './routes/userRouter';
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/signup', userController.createUser);
+app.use('/', userRouter);
 
 const start = async () => {
   try {

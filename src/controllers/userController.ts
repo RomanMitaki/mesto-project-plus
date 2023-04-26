@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/user';
+import CustomErrors from '../error';
 
 class UserController {
   async createUser(req: Request, res: Response, next: NextFunction) {
-    const {
-      name = 'Жак-Ив Кусто',
-      about = 'Исследователь',
-      avatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    } = req.body;
-
+    const { name, about, avatar } = req.body;
     try {
+      if (!name || !about || !avatar) {
+        return next(CustomErrors.badRequest('Переданы некорректные данные при создании пользователя'));
+      }
       const user = await User.create({
         name, about, avatar,
       });
@@ -21,10 +20,34 @@ class UserController {
             avatar: user.avatar,
           },
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+    }
+  }
+
+  async getUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await User.find({});
+      return res.send({ data: users });
+    } catch {
+      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+    }
+  }
+
+  async getUserById(req: Request, res: Response, next: NextFunction) {
+    const { userId } = req.params;
+
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(CustomErrors.notFound('Пользователь по указанному _id не найден'));
+      }
+      return res.send({ data: user });
+    } catch {
+      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 }
 
-export default new UserController();
+const userController = new UserController();
+export default userController;

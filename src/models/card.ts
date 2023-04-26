@@ -1,5 +1,7 @@
 import { model, Schema, Types } from 'mongoose';
 
+const linkRegExp = /^(http(s):\/\/.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
+
 export interface ICard {
   name: string;
   link: string;
@@ -14,10 +16,18 @@ const cardSchema = new Schema<ICard>({
     minlength: 2,
     maxlength: 30,
     required: true,
+    validate: {
+      validator: (v: string) => v.length > 2 && v.length < 30,
+      message: 'Имя должно быть не короче 2 и не длиннее 30 символов',
+    },
   },
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v: string) => linkRegExp.test(v),
+      message: 'Некорректная ссылка',
+    },
   },
   owner: {
     type: Schema.Types.ObjectId,
