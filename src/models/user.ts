@@ -14,20 +14,13 @@ const userSchema = new Schema<IUser>({
     minlength: 2,
     maxlength: 30,
     required: true,
-    validate: {
-      validator: (v: string) => v.length > 2 && v.length < 30,
-      message: 'Имя должно быть не короче 2 и не длиннее 30 символов',
-    },
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 200,
     required: true,
-    validate: {
-      validator: (v: string) => v.length > 2 && v.length < 200,
-      message: 'Описание должно быть не короче 2 и не длиннее 200 символов',
-    },
+
   },
   avatar: {
     type: String,
