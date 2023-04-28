@@ -1,12 +1,9 @@
 class CustomErrors extends Error {
-  status: number;
-
-  message: string;
+  statusCode: number;
 
   constructor(status: number, message: string) {
-    super();
-    this.status = status;
-    this.message = message;
+    super(message);
+    this.statusCode = status;
   }
 
   static badRequest(message: string) {

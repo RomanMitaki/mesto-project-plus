@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
 import { addTempUserReq } from './middleware/tempUserReq';
+import errorHandler from './middleware/errorHadler';
 
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +15,8 @@ app.use(addTempUserReq);
 
 app.use('/', cardRouter);
 app.use('/', userRouter);
+
+app.use(errorHandler);
 
 const start = async () => {
   try {
