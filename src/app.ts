@@ -2,13 +2,17 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import userRouter from './routes/userRouter';
+import cardRouter from './routes/cardRouter';
+import { addTempUserReq } from './middleware/tempUserReq';
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(addTempUserReq);
 
+app.use('/', cardRouter);
 app.use('/', userRouter);
 
 const start = async () => {
