@@ -19,7 +19,10 @@ class CardController {
       }
       const card = await Card.create({ name, link, owner });
       return res.send({ data: card });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'ValidationError') {
+        next(CustomErrors.badRequest('Переданы некорректные данные при создании карточки'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -45,7 +48,10 @@ class CardController {
         }
         return res.send({ data: card });
       });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'CastError') {
+        next(CustomErrors.badRequest('Карточка с указанным _id не найдена'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -71,6 +77,7 @@ class CardController {
         },
         {
           new: true,
+          runValidators: true,
         },
       );
       if (!card) {
@@ -79,7 +86,10 @@ class CardController {
         );
       }
       return res.send({ data: card });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'CastError') {
+        next(CustomErrors.badRequest('Передан несуществующий _id карточки'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -105,6 +115,7 @@ class CardController {
         },
         {
           new: true,
+          runValidators: true,
         },
       );
       if (!card) {
@@ -113,7 +124,10 @@ class CardController {
         );
       }
       return res.send({ data: card });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'CastError') {
+        next(CustomErrors.badRequest('Передан несуществующий _id карточки'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }

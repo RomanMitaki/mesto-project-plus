@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
 import CustomErrors from './error';
@@ -9,9 +11,18 @@ import errorHandler from './middleware/errorHadler';
 
 const PORT = process.env.PORT || 3000;
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 const app = express();
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(limiter);
 app.use(addTempUserReq);
 
 app.use('/', cardRouter);

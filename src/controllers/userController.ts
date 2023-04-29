@@ -22,7 +22,10 @@ class UserController {
             avatar: user.avatar,
           },
       });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'ValidationError') {
+        next(CustomErrors.badRequest('Переданы некорректные данные при создании пользователя'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -45,7 +48,10 @@ class UserController {
         return next(CustomErrors.notFound('Пользователь по указанному _id не найден'));
       }
       return res.send({ data: user });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'CastError') {
+        next(CustomErrors.badRequest('Пользователь по указанному _id не найден'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -70,6 +76,7 @@ class UserController {
         },
         {
           new: true,
+          runValidators: true,
         },
       );
       if (!user) {
@@ -78,7 +85,10 @@ class UserController {
         );
       }
       return res.send({ data: user });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'ValidationError') {
+        next(CustomErrors.badRequest('Переданы некорректные данные при обновлении профиля'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
@@ -101,6 +111,7 @@ class UserController {
         },
         {
           new: true,
+          runValidators: true,
         },
       );
       if (!user) {
@@ -109,7 +120,10 @@ class UserController {
         );
       }
       return res.send({ data: user });
-    } catch {
+    } catch (error: any) {
+      if (error.name === 'ValidationError') {
+        next(CustomErrors.badRequest('Переданы некорректные данные при обновлении аватара'));
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }

@@ -14,6 +14,10 @@ const userSchema = new Schema<IUser>({
     minlength: 2,
     maxlength: 30,
     required: true,
+    validate: {
+      validator: (v: string) => v.length > 2 && v.length < 30,
+      message: 'Текст должен быть не короче 2 симв. и не длиннее 30',
+    },
   },
   about: {
     type: String,
