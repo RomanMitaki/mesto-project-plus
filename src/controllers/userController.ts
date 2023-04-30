@@ -1,18 +1,26 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
 import { ITempUserReq } from '../middleware/tempUserReq';
 import User from '../models/user';
 import CustomErrors from '../error';
 
 class UserController {
   static async createUser(req: Request, res: Response, next: NextFunction) {
-    const { name, about, avatar } = req.body;
+    const {
+      name, about, avatar, password, email,
+    } = req.body;
     try {
-      if (!name || !about || !avatar) {
+      if (!email || !password) {
         return next(CustomErrors.badRequest('Переданы некорректные данные при создании пользователя'));
       }
+      const testEmail = await User.findOne({ email });
+      if (testEmail) {
+        return next(CustomErrors.badRequest('Пользователь с переданным email уже существует'));
+      }
+      const hashPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
-        name, about, avatar,
+        name, about, avatar, email, password: hashPassword,
       });
       return res.send({
         data:
@@ -20,6 +28,7 @@ class UserController {
             name: user.name,
             about: user.about,
             avatar: user.avatar,
+            email: user.email,
           },
       });
     } catch (error: any) {
