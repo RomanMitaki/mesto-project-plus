@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
+import UserController from './controllers/userController';
 import CustomErrors from './error';
 import { addTempUserReq } from './middleware/tempUserReq';
 import errorHandler from './middleware/errorHadler';
@@ -23,7 +24,10 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
-app.use(addTempUserReq);
+// app.use(addTempUserReq);
+
+app.post('/signin', UserController.login);
+app.post('/signup', UserController.createUser);
 
 app.use('/', cardRouter);
 app.use('/', userRouter);

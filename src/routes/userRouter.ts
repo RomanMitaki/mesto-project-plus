@@ -3,7 +3,6 @@ import UserController from '../controllers/userController';
 
 const userRouter = Router();
 
-userRouter.post('/users', UserController.createUser);
 userRouter.get('/users', UserController.getUsers);
 userRouter.get('/users/:userId', UserController.getUserById);
 userRouter.patch('/users/me', UserController.updateInfo);

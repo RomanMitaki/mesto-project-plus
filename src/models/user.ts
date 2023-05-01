@@ -1,5 +1,9 @@
-import { model, Schema } from 'mongoose';
+import {
+  model, Schema, Model, Document,
+} from 'mongoose';
 import validator from 'validator';
+import bcrypt from 'bcrypt';
+import CustomErrors from '../error';
 
 const linkRegExp = /^(http(s):\/\/.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
 
@@ -9,6 +13,11 @@ export interface IUser {
   avatar: string;
   email: string;
   password: string;
+}
+
+interface IUserModel extends Model<IUser> {
+  // eslint-disable-next-line max-len
+  findUserByCredentials: (email: string, password: string) => Promise<Document<unknown, any, IUser>>
 }
 
 const userSchema = new Schema<IUser>({
@@ -44,8 +53,25 @@ const userSchema = new Schema<IUser>({
   password: {
     type: String,
     required: [true, 'User password required'],
-    select: false,
   },
 });
 
-export default model<IUser>('User', userSchema);
+userSchema.static('findUserByCredentials', function findUserByCredentials(email: string, password: string) {
+  return this.findOne({ email })
+    .then((user: IUser) => {
+      if (!user) {
+        return Promise.reject(CustomErrors.auth('Неправильные почта или пароль'));
+      }
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(CustomErrors.auth('Неправильные почта или пароль'));
+          }
+
+          return user;
+        });
+    });
+});
+
+export default model<IUser, IUserModel>('User', userSchema);

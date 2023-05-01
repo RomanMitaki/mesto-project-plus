@@ -1,11 +1,24 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { ITempUserReq } from '../middleware/tempUserReq';
 import User from '../models/user';
 import CustomErrors from '../error';
 
 class UserController {
+  static async login(req: ITempUserReq, res: Response, next: NextFunction) {
+    const { email, password } = req.body;
+    try {
+      const user = await User.findUserByCredentials(email, password);
+      return res.send({
+        token: jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' }),
+      });
+    } catch {
+      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+    }
+  }
+
   static async createUser(req: Request, res: Response, next: NextFunction) {
     const {
       name, about, avatar, password, email,
@@ -29,6 +42,7 @@ class UserController {
             about: user.about,
             avatar: user.avatar,
             email: user.email,
+            password: user.password,
           },
       });
     } catch (error: any) {

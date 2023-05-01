@@ -17,6 +17,10 @@ class CustomErrors extends Error {
   static internalServerError(message: string) {
     return new CustomErrors(500, message);
   }
+
+  static auth(message: string) {
+    return new CustomErrors(401, message);
+  }
 }
 
 export default CustomErrors;
