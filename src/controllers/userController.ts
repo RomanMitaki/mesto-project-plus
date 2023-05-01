@@ -7,17 +7,37 @@ import User from '../models/user';
 import CustomErrors from '../error';
 
 class UserController {
-  static async login(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async login(req: Request, res: Response, next: NextFunction) {
     const { email, password } = req.body;
     try {
       const user = await User.findUserByCredentials(email, password);
-      return res.send({
-        token: jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' }),
-      });
-    } catch {
+      const token = jwt.sign({ _id: user._id }, 'qwerty', { expiresIn: '7d' });
+      return res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        })
+        .end();
+    } catch (error: any) {
+      if (error) {
+        next(error);
+      }
       next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
+
+  /* static async getUserInfo(req: Request, res: Response, next: NextFunction) {
+    const userId = req.user!._id;
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(ApiError.authorization('Пользователь по указанному _id не найден'));
+      }
+      res.send({ data: user });
+    } catch {
+      next(ApiError.internal('На сервере произошла ошибка'));
+    }
+  } */
 
   static async createUser(req: Request, res: Response, next: NextFunction) {
     const {
@@ -42,7 +62,6 @@ class UserController {
             about: user.about,
             avatar: user.avatar,
             email: user.email,
-            password: user.password,
           },
       });
     } catch (error: any) {

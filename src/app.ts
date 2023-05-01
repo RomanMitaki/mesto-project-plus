@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import auth from './middleware/auth';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
 import UserController from './controllers/userController';
@@ -24,10 +25,11 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
-// app.use(addTempUserReq);
+app.use(addTempUserReq);
 
 app.post('/signin', UserController.login);
 app.post('/signup', UserController.createUser);
+app.use(auth);
 
 app.use('/', cardRouter);
 app.use('/', userRouter);
