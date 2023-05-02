@@ -1,13 +1,13 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
-import { ITempUserReq } from '../middleware/tempUserReq';
+import { IAuthRequest } from '../middleware/auth';
 import CustomErrors from '../error';
 import Card from '../models/card';
 
 class CardController {
-  static async createCard(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async createCard(req: IAuthRequest, res: Response, next: NextFunction) {
     const { name, link } = req.body;
-    const owner = req.user!._id;
+    const owner = req.user;
 
     try {
       if (!name || !link || !owner) {
@@ -36,7 +36,7 @@ class CardController {
     }
   }
 
-  static async deleteCard(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async deleteCard(req: IAuthRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
 
     try {
@@ -56,9 +56,9 @@ class CardController {
     }
   }
 
-  static async likeCard(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async likeCard(req: IAuthRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
-    const id = req.user!._id;
+    const id = req.user;
 
     try {
       if (!cardId) {
@@ -94,9 +94,9 @@ class CardController {
     }
   }
 
-  static async dislikeCard(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async dislikeCard(req: IAuthRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
-    const id = req.user!._id;
+    const id = req.user;
 
     try {
       if (!cardId) {

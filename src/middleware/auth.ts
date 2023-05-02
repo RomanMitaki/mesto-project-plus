@@ -1,13 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import CustomErrors from '../error';
 
-interface IAuthRequest extends Request {
-  user?: string | JwtPayload
+export interface IAuthRequest extends Request {
+  user?: string
+}
+
+interface IJwtPayload {
+  _id: string
 }
 
 const getToken = (header: string) => header.replace('Bearer ', '');
 
+// eslint-disable-next-line consistent-return
 export default (req: IAuthRequest, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
 
@@ -19,14 +24,14 @@ export default (req: IAuthRequest, res: Response, next: NextFunction) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, 'qwerty');
+    payload = jwt.verify(token, 'qwerty') as IJwtPayload;
   } catch (err) {
     return res
       .status(401)
       .send({ message: 'Необходима авторизация' });
   }
 
-  req.user = payload as { _id: JwtPayload };
+  req.user = payload._id;
 
   next();
 };

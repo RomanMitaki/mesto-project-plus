@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { ITempUserReq } from '../middleware/tempUserReq';
+import { IAuthRequest } from '../middleware/auth';
 import User from '../models/user';
 import CustomErrors from '../error';
 
@@ -26,18 +26,15 @@ class UserController {
     }
   }
 
-  /* static async getUserInfo(req: Request, res: Response, next: NextFunction) {
-    const userId = req.user!._id;
+  static async getUserInfo(req: IAuthRequest, res: Response, next: NextFunction) {
+    const _id = req.user;
     try {
-      const user = await User.findById(userId);
-      if (!user) {
-        return next(ApiError.authorization('Пользователь по указанному _id не найден'));
-      }
+      const user = await User.findById(_id);
       res.send({ data: user });
     } catch {
-      next(ApiError.internal('На сервере произошла ошибка'));
+      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
-  } */
+  }
 
   static async createUser(req: Request, res: Response, next: NextFunction) {
     const {
@@ -72,7 +69,7 @@ class UserController {
     }
   }
 
-  static async getUsers(req: Request, res: Response, next: NextFunction) {
+  static async getUsers(req: IAuthRequest, res: Response, next: NextFunction) {
     try {
       const users = await User.find({});
       return res.send({ data: users });
@@ -98,9 +95,9 @@ class UserController {
     }
   }
 
-  static async updateInfo(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async updateInfo(req: IAuthRequest, res: Response, next: NextFunction) {
     const { name, about } = req.body;
-    const id = req.user!._id;
+    const id = req.user;
     try {
       if (!name || !about) {
         return next(
@@ -135,9 +132,9 @@ class UserController {
     }
   }
 
-  static async updateAvatar(req: ITempUserReq, res: Response, next: NextFunction) {
+  static async updateAvatar(req: IAuthRequest, res: Response, next: NextFunction) {
     const { avatar } = req.body;
-    const id = req.user!._id;
+    const id = req.user;
     try {
       if (!avatar) {
         return next(
