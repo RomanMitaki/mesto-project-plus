@@ -38,6 +38,7 @@ class CardController {
 
   static async deleteCard(req: IAuthRequest, res: Response, next: NextFunction) {
     const { cardId } = req.params;
+    const owner = req.user;
 
     try {
       await Card.findByIdAndRemove(cardId).then((card) => {
@@ -45,6 +46,9 @@ class CardController {
           return next(
             CustomErrors.notFound('Карточка с указанным _id не найдена'),
           );
+        }
+        if (card.owner.toString() !== owner) {
+          return next(CustomErrors.auth('Недостаточно прав для удаления карточки'));
         }
         return res.send({ data: card });
       });
