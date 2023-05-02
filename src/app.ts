@@ -4,12 +4,14 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { errors } from 'celebrate';
 import auth from './middleware/auth';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
 import UserController from './controllers/userController';
 import CustomErrors from './error';
 import errorHandler from './middleware/errorHadler';
+import { validateLogin, validateCreateUser } from './models/user';
 
 const PORT = process.env.PORT || 3000;
 
@@ -27,8 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
 app.use(cookieParser());
 
-app.post('/signup', UserController.createUser);
-app.post('/signin', UserController.login);
+app.post('/signup', validateCreateUser, UserController.createUser);
+app.post('/signin', validateLogin, UserController.login);
 app.use(auth);
 
 app.use('/', cardRouter);
@@ -37,6 +39,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next(CustomErrors.notFound('Запрашиваемый ресурс не найден'));
 });
 
+app.use(errors());
 app.use(errorHandler);
 
 const start = async () => {

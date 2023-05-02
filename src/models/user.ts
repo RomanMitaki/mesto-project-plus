@@ -2,6 +2,7 @@ import {
   model, Schema, Model, Document,
 } from 'mongoose';
 import validator from 'validator';
+import { Joi, celebrate } from 'celebrate';
 import bcrypt from 'bcrypt';
 import CustomErrors from '../error';
 
@@ -68,6 +69,42 @@ userSchema.static('findUserByCredentials', async function findUserByCredentials(
     throw CustomErrors.auth('Неправильные почта или пароль');
   }
   return user;
+});
+
+export const validateCreateUser = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(linkRegExp),
+    about: Joi.string().min(2).max(200),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(5),
+  }),
+});
+
+export const validateGetUserById = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().length(24).hex().required(),
+  }),
+});
+
+export const validateLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(5),
+  }),
+});
+
+export const validateUpdateInfo = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).required(),
+    about: Joi.string().min(2).max(200).required(),
+  }),
+});
+
+export const validateUpdateAvatar = celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().pattern(linkRegExp).required(),
+  }),
 });
 
 export default model<IUser, IUserModel>('User', userSchema);

@@ -1,4 +1,5 @@
 import { model, Schema, Types } from 'mongoose';
+import { Joi, celebrate } from 'celebrate';
 
 const linkRegExp = /^(http(s):\/\/.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
 
@@ -39,6 +40,19 @@ const cardSchema = new Schema<ICard>({
     type: Date,
     default: Date.now,
   },
+});
+
+export const validateCreateCard = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    link: Joi.string().required().pattern(linkRegExp),
+  }),
+});
+
+export const validateCardId = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
 });
 
 export default model<ICard>('Card', cardSchema);
