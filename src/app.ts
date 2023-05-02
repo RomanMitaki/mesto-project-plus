@@ -12,6 +12,7 @@ import UserController from './controllers/userController';
 import CustomErrors from './error';
 import errorHandler from './middleware/errorHadler';
 import { validateLogin, validateCreateUser } from './models/user';
+import { requestLogger, errorLogger } from './middleware/logger';
 
 const PORT = process.env.PORT || 3000;
 
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
 app.use(cookieParser());
+app.use(requestLogger);
 
 app.post('/signup', validateCreateUser, UserController.createUser);
 app.post('/signin', validateLogin, UserController.login);
@@ -39,6 +41,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next(CustomErrors.notFound('Запрашиваемый ресурс не найден'));
 });
 
+app.use(errorLogger);
 app.use(errors());
 app.use(errorHandler);
 
