@@ -4,7 +4,7 @@ import {
 import validator from 'validator';
 import { Joi, celebrate } from 'celebrate';
 import bcrypt from 'bcrypt';
-import CustomErrors from '../error';
+import AuthError from '../errors/authError';
 
 const linkRegExp = /^(http(s):\/\/.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
 
@@ -61,12 +61,12 @@ const userSchema = new Schema<IUser>({
 userSchema.static('findUserByCredentials', async function findUserByCredentials(email: string, password: string) {
   const user = await this.findOne({ email }).select('+password');
   if (!user) {
-    throw CustomErrors.auth('Неправильные почта или пароль');
+    throw new AuthError('Неправильные почта или пароль');
   }
   const isMatched = await bcrypt.compare(password, user.password);
 
   if (!isMatched) {
-    throw CustomErrors.auth('Неправильные почта или пароль');
+    throw new AuthError('Неправильные почта или пароль');
   }
   return user;
 });
@@ -77,7 +77,7 @@ export const validateCreateUser = celebrate({
     avatar: Joi.string().pattern(linkRegExp),
     about: Joi.string().min(2).max(200),
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(5),
+    password: Joi.string().required(),
   }),
 });
 
@@ -90,7 +90,7 @@ export const validateGetUserById = celebrate({
 export const validateLogin = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(5),
+    password: Joi.string().required(),
   }),
 });
 

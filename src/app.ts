@@ -53,9 +53,6 @@ const start = async () => {
       PORT,
       () => console.log(`Server start ${PORT}`),
     );
-    mongoose.connection.db.listCollections().toArray((err, names) => {
-      console.log(names);
-    });
   } catch (e) {
     console.log(e);
   }

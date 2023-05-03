@@ -1,10 +1,14 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { IAuthRequest } from '../middleware/auth';
 import User from '../models/user';
-import CustomErrors from '../error';
+import BadRequestError from '../errors/badRequestError';
+import ConflictError from '../errors/conflictError';
+import InternalServerError from '../errors/internalServerError';
+import NotFoundError from '../errors/notFoundError';
 
 class UserController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -18,11 +22,8 @@ class UserController {
           httpOnly: true,
         })
         .end();
-    } catch (error: any) {
-      if (error) {
-        next(error);
-      }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+    } catch (error) {
+      next(error);
     }
   }
 
@@ -31,8 +32,8 @@ class UserController {
     try {
       const user = await User.findById(_id);
       res.send({ data: user });
-    } catch {
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+    } catch (error) {
+      next(error);
     }
   }
 
@@ -41,13 +42,6 @@ class UserController {
       name, about, avatar, password, email,
     } = req.body;
     try {
-      if (!email || !password) {
-        return next(CustomErrors.badRequest('Переданы некорректные данные при создании пользователя'));
-      }
-      const testEmail = await User.findOne({ email });
-      if (testEmail) {
-        return next(CustomErrors.badRequest('Пользователь с переданным email уже существует'));
-      }
       const hashPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
         name, about, avatar, email, password: hashPassword,
@@ -61,11 +55,14 @@ class UserController {
             email: user.email,
           },
       });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-        next(CustomErrors.badRequest('Переданы некорректные данные при создании пользователя'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      } else if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+        next(new ConflictError('Пользователь с переданным email уже существует'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 
@@ -74,7 +71,7 @@ class UserController {
       const users = await User.find({});
       return res.send({ data: users });
     } catch {
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -84,14 +81,15 @@ class UserController {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        return next(CustomErrors.notFound('Пользователь по указанному _id не найден'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
       return res.send({ data: user });
-    } catch (error: any) {
-      if (error.name === 'CastError') {
-        next(CustomErrors.badRequest('Пользователь по указанному _id не найден'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+        next(new BadRequestError('Пользователь по указанному _id не найден'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 
@@ -99,14 +97,6 @@ class UserController {
     const { name, about } = req.body;
     const id = req.user;
     try {
-      if (!name || !about) {
-        return next(
-          CustomErrors.badRequest(
-            'Переданы некорректные данные при обновлении профиля',
-          ),
-        );
-      }
-
       const user = await User.findByIdAndUpdate(
         id,
         {
@@ -119,16 +109,15 @@ class UserController {
         },
       );
       if (!user) {
-        return next(
-          CustomErrors.notFound('Пользователь по указанному _id не найден'),
-        );
+        return next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
       return res.send({ data: user });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-        next(CustomErrors.badRequest('Переданы некорректные данные при обновлении профиля'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 
@@ -136,13 +125,6 @@ class UserController {
     const { avatar } = req.body;
     const id = req.user;
     try {
-      if (!avatar) {
-        return next(
-          CustomErrors.badRequest(
-            'Переданы некорректные данные при обновлении аватара',
-          ),
-        );
-      }
       const user = await User.findByIdAndUpdate(
         id,
         {
@@ -154,16 +136,15 @@ class UserController {
         },
       );
       if (!user) {
-        return next(
-          CustomErrors.notFound('Пользователь по указанному _id не найден'),
-        );
+        return next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
       return res.send({ data: user });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-        next(CustomErrors.badRequest('Переданы некорректные данные при обновлении аватара'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 }
