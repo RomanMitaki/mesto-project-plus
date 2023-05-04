@@ -1,8 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import CustomErrors from '../error';
+import AuthError from '../errors/authError';
+import BadRequestError from '../errors/badRequestError';
+import ConflictError from '../errors/conflictError';
+import ForbiddenError from '../errors/forbiddenError';
+import InternalServerError from '../errors/internalServerError';
+import NotFoundError from '../errors/notFoundError';
 
 export default function errorHandler(
-  err: CustomErrors,
+  err: AuthError
+    | BadRequestError
+    | ConflictError
+    | ForbiddenError
+    | InternalServerError
+    | NotFoundError,
   req: Request,
   res: Response,
   // eslint-disable-next-line no-unused-vars

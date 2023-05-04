@@ -9,10 +9,10 @@ import auth from './middleware/auth';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
 import UserController from './controllers/userController';
-import CustomErrors from './error';
 import errorHandler from './middleware/errorHadler';
 import { validateLogin, validateCreateUser } from './models/user';
 import { requestLogger, errorLogger } from './middleware/logger';
+import NotFoundError from './errors/notFoundError';
 
 const PORT = process.env.PORT || 3000;
 
@@ -38,7 +38,7 @@ app.use(auth);
 app.use('/', cardRouter);
 app.use('/', userRouter);
 app.use((req: Request, res: Response, next: NextFunction) => {
-  next(CustomErrors.notFound('Запрашиваемый ресурс не найден'));
+  next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 
 app.use(errorLogger);

@@ -1,8 +1,12 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
-import { IAuthRequest } from '../middleware/auth';
-import CustomErrors from '../error';
+import mongoose from 'mongoose';
+import BadRequestError from '../errors/badRequestError';
+import InternalServerError from '../errors/internalServerError';
+import ForbiddenError from '../errors/forbiddenError';
+import NotFoundError from '../errors/notFoundError';
 import Card from '../models/card';
+import { IAuthRequest } from '../middleware/auth';
 
 class CardController {
   static async createCard(req: IAuthRequest, res: Response, next: NextFunction) {
@@ -10,20 +14,14 @@ class CardController {
     const owner = req.user;
 
     try {
-      if (!name || !link || !owner) {
-        return next(
-          CustomErrors.badRequest(
-            'Переданы некорректные данные при создании карточки',
-          ),
-        );
-      }
       const card = await Card.create({ name, link, owner });
       return res.send({ data: card });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-        next(CustomErrors.badRequest('Переданы некорректные данные при создании карточки'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при создании карточки'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 
@@ -32,7 +30,7 @@ class CardController {
       const cards = await Card.find({});
       return res.send({ data: cards });
     } catch {
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+      next(new InternalServerError('На сервере произошла ошибка'));
     }
   }
 
@@ -41,22 +39,22 @@ class CardController {
     const owner = req.user;
 
     try {
-      await Card.findByIdAndRemove(cardId).then((card) => {
-        if (!card) {
-          return next(
-            CustomErrors.notFound('Карточка с указанным _id не найдена'),
-          );
-        }
-        if (card.owner.toString() !== owner) {
-          return next(CustomErrors.auth('Недостаточно прав для удаления карточки'));
-        }
-        return res.send({ data: card });
-      });
-    } catch (error: any) {
-      if (error.name === 'CastError') {
-        next(CustomErrors.badRequest('Карточка с указанным _id не найдена'));
+      const checkingCard = await Card.findById(cardId);
+      if (checkingCard && checkingCard.owner.toString() !== owner) {
+        return next(new ForbiddenError('Недостаточно прав для удаления карточки'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
+      const card = await Card.findByIdAndRemove(cardId);
+      if (!card) {
+        return next(new NotFoundError('Карточка с указанным _id не найдена'));
+      }
+
+      return res.send({ data: card });
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+        next(new BadRequestError('Карточка с указанным _id не найдена'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
+      }
     }
   }
 
@@ -65,13 +63,6 @@ class CardController {
     const id = req.user;
 
     try {
-      if (!cardId) {
-        return next(
-          CustomErrors.badRequest(
-            'Переданы некорректные данные для постановки лайка',
-          ),
-        );
-      }
       const card = await Card.findByIdAndUpdate(
         cardId,
         {
@@ -85,16 +76,15 @@ class CardController {
         },
       );
       if (!card) {
-        return next(
-          CustomErrors.notFound('Передан несуществующий _id карточки'),
-        );
+        return next(new NotFoundError('Передан несуществующий _id карточки'));
       }
       return res.send({ data: card });
-    } catch (error: any) {
-      if (error.name === 'CastError') {
-        next(CustomErrors.badRequest('Передан несуществующий _id карточки'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+        next(new BadRequestError('Передан несуществующий _id карточки'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 
@@ -103,13 +93,6 @@ class CardController {
     const id = req.user;
 
     try {
-      if (!cardId) {
-        return next(
-          CustomErrors.badRequest(
-            'Переданы некорректные данные для снятия лайка',
-          ),
-        );
-      }
       const card = await Card.findByIdAndUpdate(
         cardId,
         {
@@ -123,16 +106,15 @@ class CardController {
         },
       );
       if (!card) {
-        return next(
-          CustomErrors.notFound('Передан несуществующий _id карточки'),
-        );
+        return next(new NotFoundError('Передан несуществующий _id карточки'));
       }
       return res.send({ data: card });
-    } catch (error: any) {
-      if (error.name === 'CastError') {
-        next(CustomErrors.badRequest('Передан несуществующий _id карточки'));
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+        next(new BadRequestError('Передан несуществующий _id карточки'));
+      } else {
+        next(new InternalServerError('На сервере произошла ошибка'));
       }
-      next(CustomErrors.internalServerError('Ошибка на стороне сервера'));
     }
   }
 }

@@ -58,7 +58,7 @@ class UserController {
     } catch (error) {
       if (error instanceof mongoose.Error.ValidationError && error.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-      } else if (error instanceof mongoose.Error.CastError && error.name === 'CastError') {
+      } else if (error instanceof Error && error.name === 'MongoServerError') {
         next(new ConflictError('Пользователь с переданным email уже существует'));
       } else {
         next(new InternalServerError('На сервере произошла ошибка'));
