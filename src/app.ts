@@ -8,7 +8,7 @@ import { errors } from 'celebrate';
 import auth from './middleware/auth';
 import userRouter from './routes/userRouter';
 import cardRouter from './routes/cardRouter';
-import UserController from './controllers/userController';
+import { login, createUser } from './controllers/userController';
 import errorHandler from './middleware/errorHadler';
 import { validateLogin, validateCreateUser } from './models/user';
 import { requestLogger, errorLogger } from './middleware/logger';
@@ -31,8 +31,8 @@ app.use(limiter);
 app.use(cookieParser());
 app.use(requestLogger);
 
-app.post('/signup', validateCreateUser, UserController.createUser);
-app.post('/signin', validateLogin, UserController.login);
+app.post('/signup', validateCreateUser, createUser);
+app.post('/signin', validateLogin, login);
 app.use(auth);
 
 app.use('/', cardRouter);
