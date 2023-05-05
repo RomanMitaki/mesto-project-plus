@@ -1,7 +1,6 @@
 import { model, Schema, Types } from 'mongoose';
 import { Joi, celebrate } from 'celebrate';
-
-const linkRegExp = /^(http(s):\/\/.)[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
+import linkRegExp from '../constants';
 
 export interface ICard {
   name: string;
