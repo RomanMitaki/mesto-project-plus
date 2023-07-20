@@ -37,7 +37,7 @@
     "express-winston": "^4.0.4",
     "helmet": "^6.1.5",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^6.5.0",
+    "mongoose": "^6.11.3",
     "validator": "^13.9.0",
     "winston": "^3.0.0"
   }
